@@ -1,0 +1,94 @@
+Table role {
+  id integer [pk, increment]
+  name varchar [unique, not null, note: 'student / organizer / admin']
+}
+
+Table user {
+  id integer [pk, increment]
+  role_id integer [not null, ref: > role.id]
+  full_name varchar [not null]
+  email varchar [unique, not null]
+  password_hash varchar [not null]
+  faculty varchar
+  created_at datetime
+}
+
+Table category {
+  id integer [pk, increment]
+  name varchar [unique, not null]
+}
+
+Table tag {
+  id integer [pk, increment]
+  name varchar [unique, not null]
+}
+
+Table venue {
+  id integer [pk, increment]
+  name varchar [not null]
+  address varchar
+  capacity integer
+}
+
+Table event {
+  id integer [pk, increment]
+  title varchar [not null]
+  description text
+  image_url varchar
+  category_id integer [not null, ref: > category.id]
+  venue_id integer [not null, ref: > venue.id]
+  organizer_id integer [not null, ref: > user.id]
+  starts_at datetime [not null]
+  ends_at datetime
+  max_participants integer [not null]
+  status varchar [note: 'draft / published / cancelled / finished']
+}
+
+Table event_tag {
+  event_id integer [ref: > event.id]
+  tag_id integer [ref: > tag.id]
+  indexes {
+    (event_id, tag_id) [pk]
+  }
+}
+
+Table registration {
+  id integer [pk, increment]
+  user_id integer [not null, ref: > user.id]
+  event_id integer [not null, ref: > event.id]
+  status varchar [note: 'confirmed / waitlisted / cancelled / attended']
+  qr_token varchar [unique]
+  created_at datetime
+}
+
+Table waitlist_entry {
+  id integer [pk, increment]
+  registration_id integer [unique, not null, ref: - registration.id]
+  position integer [not null]
+  added_at datetime
+}
+
+Table check_in {
+  id integer [pk, increment]
+  registration_id integer [unique, not null, ref: - registration.id]
+  checked_by integer [ref: > user.id, note: 'организатор, отсканировавший QR']
+  checked_at datetime
+}
+
+Table review {
+  id integer [pk, increment]
+  user_id integer [not null, ref: > user.id]
+  event_id integer [not null, ref: > event.id]
+  rating integer [not null, note: '1-5']
+  comment text
+  created_at datetime
+}
+
+Table notification {
+  id integer [pk, increment]
+  user_id integer [not null, ref: > user.id]
+  event_id integer [ref: > event.id]
+  message varchar [not null]
+  is_read boolean [default: false]
+  created_at datetime
+}
